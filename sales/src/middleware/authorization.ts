@@ -3,7 +3,7 @@ import jwt, { Secret } from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import GeneralError from "../helpers/general_error";
 import config from "../config/config";
-import { TokenPayload } from "../interface/interfaces";
+import { TokenPayload } from "../interfaces/interfaces";
 import { AuthorizationRequest } from "../requests/authorization_request";
 
 const jwtSecret = config.SECRET_KEY as Secret;
@@ -19,6 +19,7 @@ const authorization = (request: AuthorizationRequest, response: Response, next: 
 
     try {
         const decodedToken = jwt.verify(token, jwtSecret) as TokenPayload;
+        //console.log('28', decodedToken);
         request.user = {
             id: decodedToken.id,
             email: '',

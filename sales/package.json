@@ -7,7 +7,7 @@
     "build": "rm -rf build/ && tsc -p .",
     "babel-build": "babel src --out-dir dist",
     "start": "NODE_ENV=production nodemon build/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
     "typeorm": "ts-node ./node_modules/typeorm/cli.js",
     "typeorm-generate-migration": "npm run typeorm migration:generate -- -d ./src/config/data-source.ts ./src/database/migrations/$npm_config_name",
     "typeorm-run-migrations": "npm run typeorm migration:run -- -d ./src/config/data-source.ts",
@@ -44,7 +44,12 @@
     "@babel/preset-env": "^7.28.3",
     "@types/connect": "^3.4.38",
     "@types/cors": "^2.8.19",
+    "@types/jest": "^30.0.0",
     "@types/morgan": "^1.9.10",
+    "@types/node": "^24.9.1",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2"
   },
   "lint-staged": {

@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { IUser } from "../interfaces/interfaces";
 import IJWTService from "../interfaces/jwt_service_interface";
-import JWTService from "../service/jwt_service";
-import IAuthorizationService from '../interfaces/authorization_interface';
+import JWTService from "./jwt_service";
+import IAuthenticationService from '../interfaces/authorization_interface';
 
 const COOKIE_EXPIRATION_DAYS = 3;
 const expirationDate = new Date(
@@ -14,20 +14,20 @@ const cookieOptions = {
     httpOnly: true,
 };
 
-class AuthorizationService implements IAuthorizationService{
+class AuthenticationService implements IAuthenticationService{
     private jwtService: IJWTService;
 
-    constructor() {
-        this.jwtService = new JWTService();
+    constructor(jwtService?: JWTService) {
+        this.jwtService = jwtService || new JWTService();
     };
     /**
      * @inheritdoc
      */
-    public createCookie(user: IUser, response: Response) {
+    public createCookie(user: IUser, response: Response): void {
         const token = this.jwtService.createToken(user);
 
         response.cookie('jwt', token, cookieOptions);
     }
 }
 
-export default AuthorizationService;
+export default AuthenticationService;

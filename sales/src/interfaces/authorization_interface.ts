@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { IUser } from "./interfaces";
 
-interface IAuthorizationService {
+interface IAuthenticationService {
     /**
      * Creates a cookie carrying a JWT and adds it to the response.
      * @param user IUser
@@ -10,4 +10,4 @@ interface IAuthorizationService {
     createCookie(user: IUser, response: Response): void;
 }
 
-export default IAuthorizationService;
+export default IAuthenticationService;

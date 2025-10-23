@@ -1,20 +1,18 @@
 import { Response, Request } from "express";
 import { StatusCodes } from "http-status-codes";
-import User from "../database/entities/user";
 import GeneralError from "../helpers/general_error";
-import { IUser } from "../interfaces/interfaces";
-import UserRepository from "../database/repositories/user_repository";
-import IUserRepository from "../interfaces/user_repository_interface";
-import AuthorizationService from '../service/authorization_service';
+import UserService from "../service/user_service";
+import IUserService from "../interfaces/user_service_interface";
+import AuthenticationService from '../service/authentication_service';
 import IAuthorizationService from "../interfaces/authorization_interface";
 
-class AuthorizationController {
-    private userRepository: IUserRepository;
+class AuthenticationController {
+    private userService: IUserService;
     private authService: IAuthorizationService
 
-    constructor() {
-        this.userRepository = new UserRepository();
-        this.authService = new AuthorizationService
+    constructor(userService?: IUserService, authService?: IAuthorizationService) {
+        this.userService = userService || new UserService();
+        this.authService = authService || new AuthenticationService();
     };
     
     /**
@@ -24,23 +22,15 @@ class AuthorizationController {
      * @returns Promise<Response<any, Record<string, any>>>
      */
     public login = async(request: Request, response: Response): Promise<Response<any, Record<string, any>>> => {
-            console.log(request);
         try {
             const { email, password } = request.body;
-            const user = await this.userRepository.findOne(email, password);
-
-            if (!request.body) {
-                return response.json({
-                    status: StatusCodes.BAD_REQUEST,
-                    message: 'Bad Request',
-                })
-            }
+            const user = await this.userService.getUser(email, password);
 
             if (!user) {
-                throw new GeneralError(
-                    StatusCodes.UNAUTHORIZED,
-                    'Incorrect Credentials'
-                );
+                return response.json({
+                    status: StatusCodes.UNAUTHORIZED,
+                    message: 'Incorrect Credentials',
+                });
             }
 
             this.authService.createCookie(user, response);
@@ -58,4 +48,4 @@ class AuthorizationController {
     }
 }
 
-export default AuthorizationController;
+export default AuthenticationController;

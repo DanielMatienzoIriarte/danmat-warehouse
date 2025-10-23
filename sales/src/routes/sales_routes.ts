@@ -1,12 +1,14 @@
 import Router from "express";
-import AuthorizationController from "../controller/authorization_controller";
+import AuthenticationController from "../controller/authentication_controller";
+
 
 const salesRouter = Router();
-const authorizationController = new AuthorizationController();
+
+const authenticationController = new AuthenticationController();
 
 salesRouter.post(
     '/login',
-    authorizationController.login
+    authenticationController.login
 );
 
 export default salesRouter;
