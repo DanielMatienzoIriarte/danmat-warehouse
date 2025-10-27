@@ -26,3 +26,15 @@ coverage
 
 #environment values
 .env
+
+#python
+/**/venv
+/**/__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+
+#node
+/**/node_modules
