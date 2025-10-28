@@ -1,12 +1,12 @@
 import asyncpg
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
-from asyncpg import create_pool
+
 from rotoger import Rotoger
 from src.core.inventory_redis import get_redis
 from src.core.config import settings as global_settings
 
-logger = Rotoger().get_logger()
+#logger = Rotoger().get_logger()
 
 
 @asynccontextmanager
@@ -21,13 +21,14 @@ async def lifespan(app: FastAPI):
             max_size=20,
         )
 
+        """
         await logger.ainfo(
             "Postgresql pool created",
             idle_size=app.postgres_pool.get_idle_size()
-        )
+        ) """
         yield
     except Exception as exception:
-        await logger.aerror("Error during app startup", error=repr(exception))
+        #await logger.aerror("Error during app startup", error=repr(exception))
         raise
     finally:
         await app.redis.close()

@@ -1,8 +1,5 @@
 from pydantic import PostgresDsn, RedisDsn, computed_field
-from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-import os
 
 
 class Settings(BaseSettings):
@@ -35,7 +32,7 @@ class Settings(BaseSettings):
         Returns:
             RedisDsn: The constructed RedisDsn URL for redis-py.
         """
-        return MultiHostUrl.build(
+        return RedisDsn.build(
             scheme="redis",
             host=self.REDIS_HOST,
             port=self.REDIS_PORT,
@@ -59,7 +56,7 @@ class Settings(BaseSettings):
         Returns:
             PostgresDsn: The constructed PostgresDsn URL.
         """
-        return MultiHostUrl.build(
+        return PostgresDsn.build(
             scheme="postgres",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
