@@ -1,38 +1,65 @@
-from collections.abc import AsyncGenerator
-from fastapi.exceptions import ResponseValidationError
-from rotoger import Rotoger
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from src.core.config import settings as global_settings
-
-logger = Rotoger().get_logger()
-
-engine = create_async_engine(
-    global_settings.asyncpg_url.unicode_string(),
-    future=True,
-    echo=True,
+import contextlib
+from typing import Any, AsyncIterator
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine
 )
 
-# expire_on_commit=False will prevent attributes from being expired
-# after commit.
-AsyncSessionFactory = async_sessionmaker(
-    engine,
-    autoflush=False,
-    expire_on_commit=False,
-)
+from src.core import config
+
+echo_db: bool = True
+db_url = "postgresql+asyncpg://salesman:salesman@locahost:5432/inventory"
+
+class Base(DeclarativeBase):
+    __mapper_args__ = {"eager_defaults": True}
 
 
-# Dependency
-async def get_db() -> AsyncGenerator:
-    async with AsyncSessionFactory() as session:
+class DatabaseSessionManager:
+    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):
+        self._engine = create_async_engine(host, **engine_kwargs)
+        self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine, expire_on_commit=False)
+
+    async def close(self):
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager not initialized")
+        await self._engine.dispose()
+
+        self._engine = None
+        self._sessionmaker = None
+
+    @contextlib.asynccontextmanager
+    async def connect(self) -> AsyncIterator[AsyncConnection]:
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+
+        async with self._engine.begin() as connection:
+            try:
+                yield connection
+            except Exception:
+                await connection.rollback()
+                raise
+
+    @contextlib.asynccontextmanager
+    async def session(self) -> AsyncIterator[AsyncSession]:
+        if self._sessionmaker is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+
+        session = self._sessionmaker()
         try:
             yield session
-            await session.commit()
-        except SQLAlchemyError:
-            # Re-raise SQLAlchemy errors to be handled by the global handler
+        except Exception:
+            await session.rollback()
             raise
-        except Exception as ex:
-            # Only log actual database-related issues, not response validation
-            if not isinstance(ex, ResponseValidationError):
-                await logger.aerror(f"Database-related error: {repr(ex)}")
-            raise  # Re-raise to be handled by appropriate handlers
+        finally:
+            await session.close()
+
+
+sessionmanager = DatabaseSessionManager(db_url, {"echo": echo_db})
+
+
+async def get_db_session():
+    async with sessionmanager.session() as session:
+        yield session

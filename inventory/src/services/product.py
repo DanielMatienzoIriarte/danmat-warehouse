@@ -1,3 +1,4 @@
+import uuid
 from src.database import IProductRepository
 
 
