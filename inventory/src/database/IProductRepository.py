@@ -1,15 +1,20 @@
 from abc import abstractmethod
-from typing import List
+from typing import Protocol, List
 import uuid
 
 from src.database.models.product import Product
 
 
-class IProductRepository():
+class IProductRepository(Protocol):
+
     @abstractmethod
-    async def get_product_by_id(self, id: uuid.UUID) -> Product:
+    async def get_by_id(self, id: uuid.UUID) -> Product:
         pass
 
     @abstractmethod
-    async def get_all_products(self) -> List[Product]:
+    async def get_all(self) -> List[Product]:
+        pass
+
+    @abstractmethod
+    async def add(self, product: Product) -> None:
         pass

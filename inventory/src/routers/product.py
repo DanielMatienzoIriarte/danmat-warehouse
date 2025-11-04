@@ -2,7 +2,8 @@ import uuid
 from fastapi import APIRouter, Depends
 
 from src.database.models.product import Product
-from src.core.db_dependency import db_session
+from src.dependencies.product_dependencies import db_session_dependency
+from src.services.product import ProductService
 
 
 router = APIRouter(
@@ -13,12 +14,22 @@ router = APIRouter(
 
 @router.get(
     "/{product_id}",
-    response_model=Product,
-    #dependencies=[Depends(validated)],
+    response_model=Product
 )
 async def get_product(
     product_id: uuid.UUID,
-    db_session: db_session,
 ):
-    product = await get_product(db_session, product_id)
+    product = await ProductService.get_product(product_id)
+    return product
+
+
+@router.get(
+    "/aux/{product_id}",
+    response_model=Product
+)
+async def get_product(
+    product_id: uuid.UUID,
+    db_session: db_session_dependency,
+):
+    product = await ProductService.get_by_id(db_session, product_id)
     return product

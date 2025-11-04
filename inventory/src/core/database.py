@@ -8,12 +8,18 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine
 )
 
-from src.core import config
+from src.core.config import Settings
+
+import asyncpg
 
 echo_db: bool = True
+#db_url = str(Settings.postgres_url)
 db_url = "postgresql+asyncpg://salesman:salesman@locahost:5432/inventory"
 
+
+
 class Base(DeclarativeBase):
+    # https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html#preventing-implicit-io-when-using-asyncsession
     __mapper_args__ = {"eager_defaults": True}
 
 
@@ -55,6 +61,18 @@ class DatabaseSessionManager:
             raise
         finally:
             await session.close()
+
+    """
+    # Initialize the asyncpg connection pool
+    """
+    async def get_db_pool():        
+        pool = await asyncpg.create_pool(
+            user="user", password="password", database="mydb", host="localhost"
+        )
+        try:
+            yield pool
+        finally:
+            await pool.close()
 
 
 sessionmanager = DatabaseSessionManager(db_url, {"echo": echo_db})
